@@ -72,3 +72,23 @@ I filtri di visualizzazione selezionano pacchetti già presenti nel file; non ef
 3. Genera una richiesta HTTP al server locale.
 4. Leggi la cattura con TShark e identifica la richiesta di test.
 5. Spiega perché una cattura su una scheda di rete condivisa richiede un'autorizzazione diversa.
+## Spiegazione riga per riga dei comandi
+
+L'**analisi del traffico** osserva i pacchetti che attraversano un'interfaccia di rete. È utile per capire quali protocolli e comunicazioni sono presenti, ma una cattura può contenere dati personali: in questo corso si usa soltanto traffico generato nella VM di laboratorio.
+
+### Identificare l'interfaccia
+- `mkdir -p "$HOME/corso-linux"`: crea la cartella di lavoro nella home; `-p` crea eventuali directory mancanti e non fallisce se esiste già.
+- `sudo tcpdump -D`: `tcpdump` è uno strumento da terminale per catturare e leggere pacchetti; `-D` elenca le interfacce disponibili. `sudo` è necessario in molte configurazioni per accedere alla cattura.
+- `ip addr`: mostra interfacce, stato e indirizzi IP assegnati.
+
+### Catturare pacchetti
+- `sudo tcpdump -i lo -n -c 20`: cattura sull'interfaccia loopback `lo`; `-i` sceglie l'interfaccia, `-n` evita la risoluzione di indirizzi e porte in nomi, `-c 20` termina dopo 20 pacchetti.
+- `sudo tcpdump -i lo -n -c 100 -w "$HOME/corso-linux/lab.pcap"`: cattura al massimo 100 pacchetti; `-w` scrive i pacchetti nel file PCAP invece di mostrarli in formato leggibile. Il file va trattato come potenzialmente sensibile.
+- `python3 -m http.server 8080 --bind 127.0.0.1`: avvia un piccolo server HTTP di test sulla porta 8080; `127.0.0.1` limita l'ascolto alla sola VM locale, a differenza di `0.0.0.0`.
+- `curl http://127.0.0.1:8080/`: invia una richiesta HTTP al server locale; serve a generare traffico innocuo da osservare nella cattura.
+
+### Leggere la cattura
+- `tshark -r "$HOME/corso-linux/lab.pcap"`: TShark è la versione da terminale di Wireshark; `-r` legge un file di cattura già esistente e mostra i pacchetti riconosciuti.
+- `tshark -r "$HOME/corso-linux/lab.pcap" -Y 'http.request'`: legge lo stesso file e applica il filtro di visualizzazione `http.request`, mostrando i pacchetti che Wireshark interpreta come richieste HTTP.
+
+**Differenza importante:** `-w` crea una cattura; `-r` la legge. Il filtro `-Y` seleziona pacchetti già registrati e non avvia una scansione della rete. HTTPS cifra il contenuto applicativo, quindi normalmente non è possibile leggere il testo della richiesta senza le condizioni e le chiavi di decrittazione appropriate.
