@@ -104,3 +104,25 @@ docker run --rm -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
 5. Classifica ogni rilievo come confermato, falso positivo o da approfondire e annota le prove.
 
 Non tentare payload di exploit o accessi a dati di altri utenti. Per studiare vulnerabilità, usa un corso o una piattaforma didattica isolata e segui le istruzioni specifiche del relativo laboratorio.
+## Spiegazione riga per riga dei comandi
+
+Questa scheda usa strumenti client per osservare la risposta di un'applicazione web. Esegui le richieste soltanto verso la tua app o un target di laboratorio esplicitamente autorizzato.
+
+### Richieste HTTP con curl
+- `curl -I --connect-timeout 5 http://<IP_TUA_VM>:8080/`: `curl` effettua una richiesta HTTP; `-I` richiede gli header senza scaricare normalmente il corpo; `--connect-timeout 5` limita a cinque secondi il tempo per stabilire la connessione.
+- `curl -i --connect-timeout 5 http://<IP_TUA_VM>:8080/`: `-i` include gli header nella risposta mostrata insieme al corpo.
+- `curl --output risposta.html http://<IP_TUA_VM>:8080/`: scarica il corpo della risposta nel file indicato da `--output`.
+- `curl -i -X POST ...`: `-X POST` imposta il metodo HTTP POST; `-H "Content-Type: ..."` invia l'header che dichiara il formato dei dati; `--data "..." ` invia i campi del form nel corpo della richiesta; l'URL finale indica l'endpoint. Nell'esempio usare esclusivamente credenziali fittizie.
+
+### TLS e certificati
+- `openssl s_client -connect <HOST_LAB>:443 -servername <HOST_LAB>`: apre una connessione TLS verso la porta 443; `-connect` indica host e porta; `-servername` invia il nome SNI, utile quando più siti condividono lo stesso server.
+- `curl -I https://<HOST_LAB>`: richiede gli header della risorsa HTTPS.
+- `openssl x509 -in cert.pem -text -noout`: legge il certificato X.509 dal file PEM; `-text` mostra i campi in forma leggibile e `-noout` evita di ristampare il certificato codificato.
+
+### Header HTTP
+- `curl -sS -D - -o /dev/null http://<IP_TUA_VM>:8080/`: `-sS` riduce i messaggi di avanzamento ma mostra gli errori; `-D -` stampa gli header di risposta sul terminale; `-o /dev/null` scarta il corpo su Linux; l'URL identifica il server di laboratorio. Su Windows il dispositivo di scarto ha un nome diverso, quindi questo esempio è Bash/Linux.
+
+### OWASP ZAP Baseline
+- `docker run --rm -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://host.docker.internal:8080`: `docker run` avvia un container; `--rm` lo elimina al termine; `-t` assegna un terminale; l'immagine indica la distribuzione ZAP; `zap-baseline.py` avvia il controllo passivo; `-t` seguito dall'URL specifica l'applicazione da esaminare. Verifica prima che l'URL punti alla tua app di test.
+
+I risultati di ZAP sono avvisi da verificare: un report automatico non certifica che un'applicazione sia sicura o vulnerabile.
