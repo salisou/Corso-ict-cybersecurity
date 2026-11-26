@@ -83,3 +83,47 @@ rmdir archivio
 ## Esercizio
 
 Nel laboratorio, crea `note.txt` con due righe, cercane una con `findstr`, copialo, sposta la copia e verifica la struttura con `tree /f`. Elimina solo la copia e lascia intatto l'originale.
+## Spiegazione riga per riga dei comandi
+
+`cmd.exe` è l'interprete dei comandi tradizionale di Windows. Le opzioni qui sotto appartengono al Prompt dei comandi e non devono essere copiate automaticamente in PowerShell.
+
+### Preparare un laboratorio
+- `if not exist "%TEMP%\\CorsoCMD" mkdir "%TEMP%\\CorsoCMD"`: `if not exist` controlla che il percorso non esista; solo in quel caso esegue `mkdir`; `%TEMP%` è la cartella temporanea dell'utente. In questo modo non si crea una nuova cartella se è già presente.
+- `cd /d "%TEMP%\\CorsoCMD"`: `cd` cambia directory; `/d` permette di cambiare anche unità (per esempio da C: a D:); le virgolette proteggono i percorsi con spazi.
+- `cd`: senza argomenti visualizza la directory corrente.
+
+### Orientamento
+- `help`: mostra l'elenco dei comandi interni disponibili in `cmd.exe`.
+- `dir /?`: apre la guida del comando `dir`; `/?` è la convenzione di aiuto di molti comandi CMD.
+- `cls`: pulisce la schermata, ma non cancella file.
+- `ver`: visualizza la versione di Windows.
+- `dir /a`: elenca file e cartelle includendo anche gli elementi nascosti; `/a` richiede tutti gli attributi.
+- `tree /f`: mostra la struttura delle directory; `/f` include anche i nomi dei file.
+- `mkdir documenti`: crea la directory `documenti`.
+- `cd documenti`: entra nella directory appena creata.
+- `cd ..`: torna alla directory genitore.
+
+### Creare e cercare testo
+- `echo Prima riga>note.txt`: `echo` scrive il testo; `>` lo reindirizza nel file e lo crea o sovrascrive.
+- `echo Seconda riga>>note.txt`: `>>` aggiunge il testo in fondo al file senza cancellare il contenuto precedente.
+- `type note.txt`: visualizza il contenuto testuale del file.
+- `findstr /i "riga" note.txt`: cerca la parola nel file; `/i` ignora la differenza tra maiuscole e minuscole.
+
+### Copiare e spostare
+- `copy note.txt copia.txt`: crea `copia.txt` partendo da `note.txt`, lasciando intatto l'originale.
+- `ren copia.txt archivio.txt`: cambia il nome del file senza spostarlo in un'altra directory.
+- `mkdir archivio`: crea la directory che conterrà la copia rinominata.
+- `move archivio.txt archivio\\`: sposta il file nella directory `archivio`; la barra finale rende evidente che la destinazione è una cartella.
+- `dir archivio`: elenca il contenuto della directory per verificare lo spostamento.
+
+### Sistema e rete
+- `whoami`: mostra l'account Windows con cui è in esecuzione il terminale.
+- `tasklist`: elenca i processi attivi e i relativi identificativi.
+- `ipconfig`: mostra la configurazione IP delle interfacce di rete.
+- `ping -n 4 127.0.0.1`: invia quattro richieste ICMP all'indirizzo di loopback; `-n 4` imposta il numero di richieste e `127.0.0.1` verifica lo stack TCP/IP locale, non la connessione Internet.
+
+### Pulizia
+- `del archivio\\archivio.txt`: elimina il file indicato; non lo sposta normalmente nel Cestino.
+- `rmdir archivio`: elimina la directory solo se è vuota. Se contiene ancora file, il comando non la rimuove.
+
+Controlla sempre la directory con `cd` e `dir` prima di usare `del`. Non aggiungere opzioni ricorsive e non usare caratteri jolly per esercizi introduttivi.
