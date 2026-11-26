@@ -150,3 +150,49 @@ Conserva gli originali con accesso limitato e documenta ogni trasferimento. Per 
 6. Confronta i risultati e indica quali conclusioni sono supportate dai dati e quali restano ipotesi.
 
 Non usare strumenti di acquisizione su dischi fisici senza autorizzazione, competenza e procedure adeguate: una scelta errata del dispositivo di destinazione può sovrascrivere dati.
+## Spiegazione riga per riga dei comandi
+
+La **forense digitale** raccoglie e interpreta dati digitali preservandone integrità e tracciabilità. Gli strumenti seguenti devono essere applicati a immagini o copie di laboratorio, non a dispositivi di terzi senza autorizzazione e procedura.
+
+### Hash e manifest
+- `sha256sum immagine.dd`: calcola l'impronta SHA-256 dell'immagine disco.
+- `sha256sum immagine.dd > immagine.sha256`: scrive il risultato in un file manifest; `>` crea o sovrascrive il file di destinazione.
+- `sha256sum -c immagine.sha256`: ricalcola e confronta l'hash con il valore del manifest.
+- `Get-FileHash .\\immagine.dd -Algorithm SHA256`: esegue il calcolo SHA-256 equivalente in PowerShell.
+
+### The Sleuth Kit
+- `fsstat immagine.dd`: mostra le informazioni sul filesystem contenuto nell'immagine, come tipo e parametri.
+- `mmls immagine.dd`: elenca la struttura delle partizioni e gli offset presenti nell'immagine.
+- `fls -r immagine.dd`: elenca ricorsivamente file e directory; `-r` richiede la discesa nelle directory. Le voci elencate non garantiscono che i dati siano recuperabili.
+
+### Timeline
+- `fls -r -m "/" immagine.dd > timeline-body.txt`: elenca le voci in modo ricorsivo; `-m "/" ` imposta il prefisso del percorso per il body file usato da The Sleuth Kit; `>` salva il risultato in `timeline-body.txt`.
+- `mactime -b timeline-body.txt > timeline.csv`: legge il body file con `-b` e genera una timeline; `>` salva il risultato in CSV.
+
+### Analisi dei file
+- `file <FILE_COPIA>`: prova a identificare il tipo del file in base al contenuto, non soltanto all'estensione.
+- `exiftool <FILE_COPIA>`: legge metadati incorporati, se presenti, come informazioni di formato e timestamp.
+- `strings -a <FILE_COPIA> | head -n 100`: `strings` estrae sequenze di caratteri stampabili; `-a` analizza l'intero file; la pipe passa il risultato a `head`; `-n 100` limita la visualizzazione alle prime 100 righe.
+- `sha256sum <FILE_COPIA>`: calcola l'hash del file esaminato per documentare quale copia è stata analizzata.
+
+### Dati volatili Linux
+- `date -Is`: registra data e ora in formato ISO 8601 con indicazione del fuso orario.
+- `hostname`: mostra il nome della macchina.
+- `uname -a`: mostra informazioni sul kernel e sull'architettura.
+- `uptime`: mostra da quanto tempo il sistema è acceso e il carico medio.
+- `who`: elenca gli utenti con sessioni attive.
+- `ps auxww`: mostra i processi; `a` include processi associati a terminali, `u` usa un formato dettagliato per utente, `x` include processi senza terminale e `ww` evita di troncare la riga di comando.
+- `sudo ss -tunap`: mostra socket e connessioni; `-t` TCP, `-u` UDP, `-n` valori numerici, `-a` tutti i socket e `-p` processo associato.
+- `ip addr`: mostra interfacce e indirizzi.
+- `ip route`: mostra la tabella di instradamento, utile per documentare gateway e percorsi di rete.
+
+### Raccolta Windows
+- `Get-Date -Format o`: stampa data e ora in formato round-trip ISO 8601.
+- `$env:COMPUTERNAME`: legge la variabile d'ambiente contenente il nome del computer.
+- `whoami`: mostra l'account corrente.
+- `Get-Process`: elenca i processi attivi.
+- `Get-NetTCPConnection`: mostra le connessioni TCP e le porte in ascolto.
+- `wevtutil epl System .\\System-lab.evtx`: esporta il registro System nel file EVTX indicato.
+- `Get-FileHash .\\System-lab.evtx -Algorithm SHA256`: calcola l'hash del file EVTX esportato.
+
+La raccolta dei dati può modificare lo stato del sistema e i timestamp. Annota sempre l'orario, i privilegi, lo strumento e il comando effettivamente usato.
