@@ -127,3 +127,43 @@ Get-FileHash .\campione.txt -Algorithm SHA256
 ```
 
 Usa solo dati fittizi. Non inserire password vere in script, esempi o file di esercitazione.
+## Spiegazione riga per riga dei comandi
+
+Questa guida distingue tre concetti: casualità crittografica per generare segreti, hashing per verificare l'integrità e crittografia per proteggere la riservatezza. Un hash non è una password cifrata e non si può “decifrare”.
+
+### Generare valori casuali in PowerShell
+- `$bytes = New-Object byte[] 24`: crea un array di 24 byte inizializzati a zero e lo assegna alla variabile `$bytes`.
+- `$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()`: crea un generatore di numeri casuali crittograficamente sicuro del framework .NET.
+- `$rng.GetBytes($bytes)`: riempie l'array con byte casuali.
+- `$rng.Dispose()`: rilascia le risorse del generatore.
+- `[Convert]::ToBase64String($bytes)`: converte i byte in una rappresentazione Base64 stampabile; Base64 è codifica, non cifratura.
+- `openssl rand -base64 24`: con OpenSSL genera 24 byte casuali e li rappresenta in Base64; `rand` seleziona il generatore casuale e `-base64 24` richiede 24 byte codificati.
+
+### Hash e integrità
+- `Get-FileHash .\\documento.txt -Algorithm SHA256`: calcola l'hash SHA-256 del file in Windows; il risultato può essere confrontato con un valore di riferimento attendibile.
+- `sha256sum documento.txt`: calcola e mostra l'impronta SHA-256 del file Linux.
+- `sha256sum documento.txt > documento.sha256`: salva il risultato in un manifest; `>` crea o sovrascrive il file del manifest.
+- `sha256sum -c documento.sha256`: legge il manifest e verifica che l'hash del file corrisponda a quello registrato.
+
+### Crittografia con GPG
+- `gpg --list-keys`: mostra le chiavi pubbliche presenti nel portachiavi GPG.
+- `gpg --encrypt --recipient <CHIAVE-ID> documento.txt`: cifra il file per il destinatario; `--encrypt` attiva la cifratura, `--recipient` identifica la chiave pubblica del destinatario e l'ultimo argomento è il file sorgente.
+- `gpg --decrypt documento.txt.gpg`: decifra il file usando la chiave privata disponibile; senza `--output`, il contenuto viene normalmente inviato sullo standard output.
+- `gpg --symmetric documento.txt`: cifra il file con una passphrase condivisa e la richiede in modo interattivo.
+- `gpg --output documento-recuperato.txt --decrypt documento.txt.gpg`: decifra il file e scrive il risultato nel percorso indicato da `--output`.
+
+### Firma
+- `gpg --sign documento.txt`: crea una firma OpenPGP usando la chiave privata selezionata; il risultato è normalmente un file firmato in formato binario.
+- `gpg --verify documento.txt.gpg`: verifica la firma contenuta nel file. Per fidarsi dell'identità del firmatario occorre aver autenticato la sua chiave pubblica.
+
+### Esercizio sugli hash
+- `printf 'test laboratorio\\n' > campione.txt`: scrive una riga fittizia nel file; `>` crea o sovrascrive.
+- `sha256sum campione.txt`: calcola l'hash prima della modifica.
+- `printf 'seconda riga\\n' >> campione.txt`: aggiunge una seconda riga; `>>` non cancella la prima.
+- `sha256sum campione.txt`: ricalcola l'hash dopo la modifica per confrontare i risultati.
+- `"test laboratorio" | Set-Content .\\campione.txt`: in PowerShell la stringa a sinistra della pipe viene inviata a `Set-Content`, che crea o sovrascrive il file.
+- `Get-FileHash .\\campione.txt -Algorithm SHA256`: calcola l'hash Windows del file.
+- `Add-Content .\\campione.txt "seconda riga"`: aggiunge testo al file esistente.
+- `Get-FileHash .\\campione.txt -Algorithm SHA256`: ripete il calcolo dopo l'aggiunta.
+
+Non inserire password reali negli esempi, nei comandi o nella cronologia della shell. Non usare SHA-256 semplice per memorizzare password applicative.
